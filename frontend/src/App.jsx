@@ -23,6 +23,9 @@ import EditCustomer from "./Pages/Customer/EditCustomer";
 import ProjectType from "./Pages/Project/ProjectType";
 import EditProject from "./Pages/Project/EditProject";
 import AddProject from "./Pages/Project/AddProject";
+import AddEvent from "./Pages/SuKien/AddEvent";
+import EditEvent from "./Pages/SuKien/EditEvent";
+import EventType from "./Pages/SuKien/EventType";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -84,6 +87,11 @@ function App() {
 
 
           <Route path={PATHS.EVENT} element={<SuKien />} />
+          <Route path={PATHS.ADD_EVENT} element={<AddEvent />} />
+          <Route path={`${PATHS.EDIT_EVENT}/:id`} element={<EditEvent />} />
+          
+          <Route path={PATHS.EVENT_TYPES} element={<EventType />} />
+          
           <Route path={PATHS.REMAIND} element={<Remaind />} />
           <Route path={PATHS.PAYMENT} element={<Payment />} />
         </Route>

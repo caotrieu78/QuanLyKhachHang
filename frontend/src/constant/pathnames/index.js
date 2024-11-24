@@ -3,6 +3,7 @@ const CUSTOMER_PATH = "/customer";
 const PROJECT_PATH = "/project";
 const PROJECT_TYPES_PATH = "/project-types";
 const EVENT_PATH = "/event";
+const EVENT_TYPES_PATH = "/event-types"
 const REMAIND_PATH = "/remainder";
 const PAYMENT_PATH = "/payment";
 
@@ -37,6 +38,13 @@ export const PATHS = {
 
     // Event Management
     EVENT: EVENT_PATH,
+    ADD_EVENT: `${EVENT_PATH}/addEvent`,
+    EDIT_EVENT: `${EVENT_PATH}/editEvents`,
+
+    // Event Type
+    EVENT_TYPES: EVENT_TYPES_PATH,
+    ADD_EVENT_TYPE: `${EVENT_PATH}/addTypes`,
+    EDIT_EVENT_TYPE: `${EVENT_PATH}/editTypes`,
 
     // Reminder Management
     REMAIND: REMAIND_PATH,
