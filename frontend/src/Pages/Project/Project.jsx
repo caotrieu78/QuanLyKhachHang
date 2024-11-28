@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { getAllProjects, deleteProject } from "../../services/projectServices";
+import { getAllProjects, deleteProject, getAllProjectTypes } from "../../services/projectServices";
 import { PATHS } from "../../constant/pathnames";
 
 function Project() {
     const [projects, setProjects] = useState([]);
+    const [projectTypes, setProjectTypes] = useState([]); // State for project types
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [projectToDelete, setProjectToDelete] = useState(null);
@@ -12,22 +13,30 @@ function Project() {
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const projectsPerPage = 5; // Number of projects per page
+    const projectsPerPage = 10; // Number of projects per page
 
-    // Fetch the list of projects when the component mounts
+    // Filters and Search
+    const [statusFilter, setStatusFilter] = useState("");
+    const [typeFilter, setTypeFilter] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+
+    // Fetch projects and project types when the component mounts
     useEffect(() => {
-        const fetchProjects = async () => {
+        const fetchProjectsAndTypes = async () => {
             try {
-                const data = await getAllProjects();
-                console.log("Fetched projects:", data);  // Debugging: log fetched data
-                setProjects(data);
+                const [projectData, projectTypeData] = await Promise.all([
+                    getAllProjects(),
+                    getAllProjectTypes(),
+                ]);
+                setProjects(projectData);
+                setProjectTypes(projectTypeData); // Populate project types
             } catch (err) {
-                console.error("Error fetching projects:", err);
-                setError("Không thể tải danh sách dự án.");
+                console.error("Error fetching data:", err);
+                setError("Không thể tải dữ liệu.");
             }
         };
 
-        fetchProjects();
+        fetchProjectsAndTypes();
     }, []);
 
     // Function to confirm deletion of a project
@@ -63,12 +72,30 @@ function Project() {
         return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
+    // Filtered and searched projects
+    const filteredProjects = projects
+        .filter((project) => {
+            if (statusFilter && project.status !== statusFilter) return false;
+            if (typeFilter && project.projectType?.typeName !== typeFilter) return false;
+            if (searchTerm && !project.projectName.toLowerCase().includes(searchTerm.toLowerCase()))
+                return false;
+            return true;
+        });
+
+
+    // Phân Quyền
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isAuthorized = user?.role === "Admin" || user?.role === "Manager"; // Allow Admin and Manager
+
+
+
+
     // Pagination logic
     const indexOfLastProject = currentPage * projectsPerPage;
     const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-    const currentProjects = projects.slice(indexOfFirstProject, indexOfLastProject);
+    const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
 
-    const totalPages = Math.ceil(projects.length / projectsPerPage);
+    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
@@ -76,6 +103,12 @@ function Project() {
 
     const handlePreviousPage = () => {
         if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    };
+
+    const clearFilters = () => {
+        setStatusFilter("");
+        setTypeFilter("");
+        setSearchTerm("");
     };
 
     if (error) {
@@ -98,6 +131,46 @@ function Project() {
                         Xem danh sách loại dự án
                     </NavLink>
                 </div>
+            </div>
+
+            {/* Filters and Search */}
+            <div className="d-flex gap-3 align-items-center mb-4">
+                <select
+                    className="form-select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Accepted_NotPaid">Accepted - Not Paid</option>
+                    <option value="Canceled">Canceled</option>
+                </select>
+
+                <select
+                    className="form-select"
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                >
+                    <option value="">Tất cả loại dự án</option>
+                    {projectTypes.map((type) => (
+                        <option key={type.typeId} value={type.typeName}>
+                            {type.typeName}
+                        </option>
+                    ))}
+                </select>
+
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tìm kiếm tên dự án..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+
+                <button className="btn btn-outline-secondary" onClick={clearFilters}>
+                    Xóa bộ lọc
+                </button>
             </div>
 
             {/* Project Table */}
@@ -124,7 +197,26 @@ function Project() {
                                 <td>{project.customer?.name || "Không có khách hàng"}</td>
                                 <td>{project.user?.fullName || "Không có người quản lý"}</td>
                                 <td>{project.projectType?.typeName || "Không có loại dự án"}</td>
-                                <td>{project.status}</td>
+                                <td>
+                                    <span
+                                        className={`badge ${project.status === "Ongoing"
+                                            ? "bg-primary"
+                                            : project.status === "Completed"
+                                                ? "bg-success"
+                                                : project.status === "Accepted_NotPaid"
+                                                    ? "bg-warning text-dark"
+                                                    : "bg-danger"
+                                            }`}
+                                    >
+                                        {project.status === "Ongoing"
+                                            ? "Đang thực hiện"
+                                            : project.status === "Completed"
+                                                ? "Hoàn thành"
+                                                : project.status === "Accepted_NotPaid"
+                                                    ? "Chấp nhận nhưng chưa thanh toán"
+                                                    : "Đã hủy"}
+                                    </span>
+                                </td>
                                 <td>{project.startDate}</td>
                                 <td>{project.endDate || "Chưa có ngày kết thúc"}</td>
                                 <td>
@@ -134,18 +226,23 @@ function Project() {
                                     >
                                         Xem
                                     </button>
-                                    <NavLink
-                                        to={`${PATHS.EDIT_PROJECT}/${project.projectId}`}
-                                        className="btn btn-warning btn-sm me-2"
-                                    >
-                                        Sửa
-                                    </NavLink>
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => confirmDelete(project.projectId)}
-                                    >
-                                        Xóa
-                                    </button>
+                                    {isAuthorized && (
+                                        <>
+                                            <NavLink
+                                                to={`${PATHS.EDIT_PROJECT}/${project.projectId}`}
+                                                className="btn btn-warning btn-sm me-2"
+                                            >
+                                                Sửa
+                                            </NavLink>
+                                            <button
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => confirmDelete(project.projectId)}
+                                            >
+                                                Xóa
+                                            </button>
+                                        </>
+                                    )}
+
                                 </td>
                             </tr>
                         ))}
@@ -244,7 +341,7 @@ function Project() {
                                 <p><strong>Số tiền tổng:</strong> {formatCurrency(projectDetails.totalAmount)}</p>
                                 <p><strong>Số tiền đã trả:</strong> {formatCurrency(projectDetails.paidAmount)}</p>
                                 <p><strong>Số tiền còn lại:</strong> {formatCurrency(projectDetails.remainingAmount)}</p>
-                                <p><strong>Người quản lý:</strong> {projectDetails.user.fullName || "Không có"}</p>
+                                <p><strong>Người quản lý:</strong> {projectDetails.user.fullName || "Không có"}({projectDetails.user.role || "Không có"})   </p>
                                 <p><strong>Khách hàng:</strong> {projectDetails.customer.name || "Không có"}</p>
                                 <p><strong>Loại dự án:</strong> {projectDetails.projectType.typeName}</p>
                             </div>
