@@ -4,6 +4,7 @@ import { getAllNotifications } from "../../services/eventNotificationServices";
 function Remaind() {
     const [groupedNotifications, setGroupedNotifications] = useState({});
     const [error, setError] = useState("");
+    const [sortConfig, setSortConfig] = useState({ column: null, order: "asc" });
 
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -30,31 +31,67 @@ function Remaind() {
         fetchNotifications();
     }, []);
 
+    const handleSort = (column, keyExtractor) => {
+        const newOrder = sortConfig.column === column && sortConfig.order === "asc" ? "desc" : "asc";
+        setSortConfig({ column, order: newOrder });
+
+        const sortFunction = (a, b) => {
+            const valueA = keyExtractor(a) ?? "";
+            const valueB = keyExtractor(b) ?? "";
+            if (valueA < valueB) return newOrder === "asc" ? -1 : 1;
+            if (valueA > valueB) return newOrder === "asc" ? 1 : -1;
+            return 0;
+        };
+
+        const updatedGroups = Object.fromEntries(
+            Object.entries(groupedNotifications).map(([key, notifications]) => [
+                key,
+                [...notifications].sort(sortFunction),
+            ])
+        );
+
+        setGroupedNotifications(updatedGroups);
+    };
+
     if (error) return <div className="alert alert-danger">{error}</div>;
 
     return (
-        <div className="container mt-4">
+        <div className="table-responsive">
             <h2 className="text-center">Danh Sách Thông Báo Theo Sự Kiện</h2>
 
             {Object.entries(groupedNotifications).map(([eventKey, notifications], index) => (
                 <div key={index} className="mb-5">
                     <h3>{eventKey}</h3>
-                    <table className="table table-bordered mt-3">
-                        <thead>
+                    <table className="table table-striped table-bordered">
+                        <thead className="table-dark">
                             <tr>
-                                <th>#</th>
-                                <th>Người Phụ Trách</th>
-                                <th>Khách Hàng</th>
-                                <th>Trạng Thái Thông Báo</th>
-                                <th>Hình Thức Thông Báo</th>
-                                <th>Thời Gian Gửi</th>
-                                <th>Nội Dung Thông Báo</th>
+                                <th onClick={() => handleSort("notificationId", (n) => n.notificationId)}>
+                                    ID {sortConfig.column === "notificationId" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("manager", (n) => n.eventUser.user.fullName)}>
+                                    Người Phụ Trách {sortConfig.column === "manager" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("customer", (n) => n.eventUser.customer.name)}>
+                                    Khách Hàng {sortConfig.column === "customer" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("status", (n) => n.status)}>
+                                    Trạng Thái {sortConfig.column === "status" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("method", (n) => n.method)}>
+                                    Hình Thức Thông Báo {sortConfig.column === "method" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("sentAt", (n) => n.sentAt || "")}>
+                                    Thời Gian Gửi {sortConfig.column === "sentAt" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
+                                <th onClick={() => handleSort("message", (n) => n.message)}>
+                                    Nội Dung {sortConfig.column === "message" && (sortConfig.order === "asc" ? "↑" : "↓")}
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {notifications.map((notification, idx) => (
                                 <tr key={notification.notificationId}>
-                                    <td>{idx + 1}</td>
+                                    <td>{notification.notificationId}</td>
                                     <td>{notification.eventUser.user.fullName}</td>
                                     <td>{notification.eventUser.customer.name}</td>
                                     <td>{notification.status}</td>
@@ -76,7 +113,3 @@ function Remaind() {
 }
 
 export default Remaind;
-
-
-
-

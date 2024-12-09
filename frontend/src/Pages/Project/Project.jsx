@@ -20,6 +20,13 @@ function Project() {
     const [typeFilter, setTypeFilter] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
 
+
+    //them moi
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortOrder, setSortOrder] = useState("asc");
+    //====================================================
+
+
     // Fetch projects and project types when the component mounts
     useEffect(() => {
         const fetchProjectsAndTypes = async () => {
@@ -115,6 +122,24 @@ function Project() {
         return <div className="alert alert-danger">{error}</div>;
     }
 
+    //them moi
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            // Đổi thứ tự nếu cùng cột
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            // Đổi cột và đặt thứ tự mặc định là tăng dần
+            setSortColumn(column);
+            setSortOrder("asc");
+        }
+    };
+    // Sắp xếp dữ liệu dựa trên cột và thứ tự
+    const sortedProjects = [...currentProjects].sort((a, b) => {
+        if (a[sortColumn] < b[sortColumn]) return sortOrder === "asc" ? -1 : 1;
+        if (a[sortColumn] > b[sortColumn]) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+
     return (
         <div className="container">
             {/* Success Message */}
@@ -177,7 +202,7 @@ function Project() {
             <div className="table-responsive">
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
-                        <tr>
+                        {/* <tr>
                             <th>ID</th>
                             <th>Tên dự án</th>
                             <th>Khách hàng</th>
@@ -187,10 +212,39 @@ function Project() {
                             <th>Ngày bắt đầu</th>
                             <th>Ngày kết thúc</th>
                             <th>Actions</th>
+                        </tr> */}
+                        <tr>
+                            <th onClick={() => handleSort("projectId")}>
+                                ID {sortColumn === "projectId" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("projectName")}>
+                                Tên dự án {sortColumn === "projectName" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("customer")}>
+                                Khách hàng {sortColumn === "customer" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("manager")}>
+                                Người quản lý {sortColumn === "manager" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("projectType")}>
+                                Loại dự án {sortColumn === "projectType" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("status")}>
+                                Trạng thái {sortColumn === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("startDate")}>
+                                Ngày bắt đầu {sortColumn === "startDate" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("endDate")}>
+                                Ngày kết thúc {sortColumn === "endDate" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th>Actions</th>
                         </tr>
+
                     </thead>
                     <tbody>
-                        {currentProjects.map((project) => (
+                        {/* {currentProjects.map((project) => ( */}
+                        {sortedProjects.map((project) => (
                             <tr key={project.projectId}>
                                 <td>{project.projectId}</td>
                                 <td>{project.projectName}</td>

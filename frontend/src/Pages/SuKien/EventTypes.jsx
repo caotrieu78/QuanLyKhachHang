@@ -2,49 +2,66 @@ import React, { useState, useEffect } from "react";
 import { getAllEventTypes, createEventType, updateEventType, deleteEventType } from "../../services/eventServices";
 
 function EventTypes() {
-    const [eventTypes, setEventTypes] = useState([]);  // Store event types
-    const [error, setError] = useState("");  // Store error message
-    const [showCreateModal, setShowCreateModal] = useState(false);  // Control create modal visibility
-    const [showEditModal, setShowEditModal] = useState(false);    // Control edit modal visibility
-    const [showDeleteModal, setShowDeleteModal] = useState(false);  // Control delete confirmation modal visibility
-    const [selectedEventType, setSelectedEventType] = useState(null);  // Store the selected event type for edit/delete
-    const [newEventType, setNewEventType] = useState({ name: "" });  // Store new event type data for creation
+    const [eventTypes, setEventTypes] = useState([]); // Store event types
+    const [error, setError] = useState(""); // Store error message
+    const [successMessage, setSuccessMessage] = useState(""); // Store success message
+    const [showCreateModal, setShowCreateModal] = useState(false); // Create modal visibility
+    const [showEditModal, setShowEditModal] = useState(false); // Edit modal visibility
+    const [showDeleteModal, setShowDeleteModal] = useState(false); // Delete modal visibility
+    const [selectedEventType, setSelectedEventType] = useState(null); // Event type for edit/delete
+    const [newEventType, setNewEventType] = useState({ name: "" }); // Data for creating a new event type
 
     useEffect(() => {
-        // Fetch event types on component mount
         const fetchEventTypes = async () => {
             try {
-                const data = await getAllEventTypes();  // API call to fetch event types
-                setEventTypes(data);  // Store the event types in state
+                const data = await getAllEventTypes();
+                setEventTypes(data);
             } catch (err) {
-                console.error("Error fetching event types:", err);
                 setError("Unable to fetch event types.");
             }
         };
-
         fetchEventTypes();
-    }, []);  // Empty dependency array ensures this runs once after the initial render
+    }, []);
 
+    // Validate function
+    const validateEventTypeName = (name) => {
+        if (!name.trim()) {
+            setError("Event type name cannot be empty.");
+            return false;
+        }
+        if (name.length < 3) {
+            setError("Event type name must be at least 3 characters.");
+            return false;
+        }
+        setError(""); // Clear any previous error
+        return true;
+    };
+
+    // Handle Create Event Type
     const handleCreateEventType = async () => {
-        // Logic for creating a new event type via API call
+        if (!validateEventTypeName(newEventType.name)) return;
+
         try {
             const createdEvent = await createEventType({ eventTypeName: newEventType.name });
-            setEventTypes([...eventTypes, createdEvent]);  // Add new event type to state
-            setShowCreateModal(false);  // Close the modal after creation
+            setEventTypes([...eventTypes, createdEvent]);
+            setShowCreateModal(false);
+            setSuccessMessage("Event type created successfully.");
+            setNewEventType({ name: "" });
         } catch (err) {
-            console.error("Error creating event type:", err);
             setError("Failed to create event type.");
         }
     };
 
+    // Handle Edit Event Type
     const handleEditEventType = (id) => {
         const eventTypeToEdit = eventTypes.find((type) => type.eventTypeId === id);
         setSelectedEventType(eventTypeToEdit);
-        setShowEditModal(true);  // Show the edit modal
+        setShowEditModal(true);
     };
 
     const handleUpdateEventType = async () => {
-        // Logic for updating event type via API call
+        if (!validateEventTypeName(selectedEventType.eventTypeName)) return;
+
         try {
             const updatedEvent = await updateEventType(selectedEventType.eventTypeId, {
                 eventTypeName: selectedEventType.eventTypeName,
@@ -52,45 +69,45 @@ function EventTypes() {
             setEventTypes(eventTypes.map((type) =>
                 type.eventTypeId === updatedEvent.eventTypeId ? updatedEvent : type
             ));
-            setShowEditModal(false);  // Close the edit modal after update
+            setShowEditModal(false);
+            setSuccessMessage("Event type updated successfully.");
         } catch (err) {
-            console.error("Error updating event type:", err);
             setError("Failed to update event type.");
         }
     };
 
+    // Handle Delete Event Type
     const handleDeleteEventType = async () => {
-        // Logic for deleting an event type via API call
         try {
             await deleteEventType(selectedEventType.eventTypeId);
-            setEventTypes(eventTypes.filter((type) => type.eventTypeId !== selectedEventType.eventTypeId));  // Remove the deleted event from state
-            setShowDeleteModal(false);  // Close the delete confirmation modal
+            setEventTypes(eventTypes.filter((type) => type.eventTypeId !== selectedEventType.eventTypeId));
+            setShowDeleteModal(false);
+            setSuccessMessage("Event type deleted successfully.");
         } catch (err) {
-            console.error("Error deleting event type:", err);
             setError("Failed to delete event type.");
         }
     };
 
-    if (error) {
-        return <div className="alert alert-danger">{error}</div>;
-    }
-
-    if (eventTypes.length === 0) {
-        return <div className="alert alert-warning">No event types found.</div>;
-    }
+    // Display error or success messages
+    const MessageAlert = ({ message, type }) => (
+        message && <div className={`alert alert-${type} mt-3`}>{message}</div>
+    );
 
     return (
         <div>
             <button className="btn btn-primary mb-3" onClick={() => setShowCreateModal(true)}>
-                Tạo Sự Kiện
+                Create Event Type
             </button>
+
+            {error && <MessageAlert message={error} type="danger" />}
+            {successMessage && <MessageAlert message={successMessage} type="success" />}
 
             <div className="table-responsive">
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
-                            <th>Tên Sự Kiện</th>
-                            <th>Hành Động</th>
+                            <th>Event Type Name</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +119,7 @@ function EventTypes() {
                                         className="btn btn-warning btn-sm me-2"
                                         onClick={() => handleEditEventType(eventType.eventTypeId)}
                                     >
-                                        Sửa
+                                        Edit
                                     </button>
                                     <button
                                         className="btn btn-danger btn-sm"
@@ -111,7 +128,7 @@ function EventTypes() {
                                             setShowDeleteModal(true);
                                         }}
                                     >
-                                        Xóa
+                                        Delete
                                     </button>
                                 </td>
                             </tr>
@@ -120,84 +137,84 @@ function EventTypes() {
                 </table>
             </div>
 
-            {/* Create Event Type Modal */}
-            <div className={`modal fade ${showCreateModal ? "show" : ""}`} style={{ display: showCreateModal ? "block" : "none" }} tabIndex="-1" aria-labelledby="createEventTypeModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="createEventTypeModalLabel">Create Event Type</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowCreateModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="mb-3">
-                                <label htmlFor="eventName" className="form-label">Event Type Name</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="eventName"
-                                    value={newEventType.name}
-                                    onChange={(e) => setNewEventType({ name: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowCreateModal(false)}>Close</button>
-                            <button type="button" className="btn btn-primary" onClick={handleCreateEventType}>Create</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Create Modal */}
+            {showCreateModal && (
+                <Modal
+                    title="Create Event Type"
+                    isOpen={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    onSave={handleCreateEventType}
+                >
+                    <InputField
+                        label="Event Type Name"
+                        value={newEventType.name}
+                        onChange={(e) => setNewEventType({ name: e.target.value })}
+                    />
+                </Modal>
+            )}
 
-            {/* Edit Event Type Modal */}
-            <div className={`modal fade ${showEditModal ? "show" : ""}`} style={{ display: showEditModal ? "block" : "none" }} tabIndex="-1" aria-labelledby="editEventTypeModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="editEventTypeModalLabel">Edit Event Type</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowEditModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="mb-3">
-                                <label htmlFor="editEventName" className="form-label">Event Type Name</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="editEventName"
-                                    value={selectedEventType?.eventTypeName || ""}
-                                    onChange={(e) =>
-                                        setSelectedEventType({ ...selectedEventType, eventTypeName: e.target.value })
-                                    }
-                                />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowEditModal(false)}>Close</button>
-                            <button type="button" className="btn btn-primary" onClick={handleUpdateEventType}>Update</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Edit Modal */}
+            {showEditModal && selectedEventType && (
+                <Modal
+                    title="Edit Event Type"
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    onSave={handleUpdateEventType}
+                >
+                    <InputField
+                        label="Event Type Name"
+                        value={selectedEventType.eventTypeName}
+                        onChange={(e) =>
+                            setSelectedEventType({ ...selectedEventType, eventTypeName: e.target.value })
+                        }
+                    />
+                </Modal>
+            )}
 
-            {/* Delete Event Type Modal */}
-            <div className={`modal fade ${showDeleteModal ? "show" : ""}`} style={{ display: showDeleteModal ? "block" : "none" }} tabIndex="-1" aria-labelledby="deleteEventTypeModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="deleteEventTypeModalLabel">Delete Event Type</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowDeleteModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                            Are you sure you want to delete this event type?
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowDeleteModal(false)}>Close</button>
-                            <button type="button" className="btn btn-danger" onClick={handleDeleteEventType}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Delete Modal */}
+            {showDeleteModal && (
+                <Modal
+                    title="Delete Event Type"
+                    isOpen={showDeleteModal}
+                    onClose={() => setShowDeleteModal(false)}
+                    onSave={handleDeleteEventType}
+                >
+                    Are you sure you want to delete this event type?
+                </Modal>
+            )}
         </div>
     );
 }
+
+// Reusable Modal Component
+const Modal = ({ title, isOpen, onClose, onSave, children }) => (
+    <div className={`modal fade ${isOpen ? "show" : ""}`} style={{ display: isOpen ? "block" : "none" }}>
+        <div className="modal-dialog">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <h5 className="modal-title">{title}</h5>
+                    <button type="button" className="btn-close" onClick={onClose}></button>
+                </div>
+                <div className="modal-body">{children}</div>
+                <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={onClose}>
+                        Close
+                    </button>
+                    <button type="button" className="btn btn-primary" onClick={onSave}>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// Reusable InputField Component
+const InputField = ({ label, value, onChange }) => (
+    <div className="mb-3">
+        <label className="form-label">{label}</label>
+        <input type="text" className="form-control" value={value} onChange={onChange} />
+    </div>
+);
 
 export default EventTypes;

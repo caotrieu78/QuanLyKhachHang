@@ -42,3 +42,9 @@ body {
 .collapsed-sidebar h5 {
     display: none;
 }
+
+
+.th {
+    white-space: nowrap; /* Ngăn tiêu đề bị xuống dòng */
+    text-align: center;
+}

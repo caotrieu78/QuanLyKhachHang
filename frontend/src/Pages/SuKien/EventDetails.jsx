@@ -18,6 +18,8 @@ function EventDetails() {
     const [successMessage, setSuccessMessage] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [customerFilter, setCustomerFilter] = useState(""); // Từ khóa tìm kiếm khách hàng
+    const [userFilter, setUserFilter] = useState(""); // Từ khóa tìm kiếm người phụ trách
 
     useEffect(() => {
         const fetchEventDetails = async () => {
@@ -70,8 +72,8 @@ function EventDetails() {
     const toggleCustomerSelection = (customerId) => {
         setSelectedCustomers((prevSelected) =>
             prevSelected.includes(customerId)
-                ? prevSelected.filter((id) => id !== customerId) // Bỏ chọn nếu đã chọn
-                : [...prevSelected, customerId] // Thêm vào nếu chưa chọn
+                ? prevSelected.filter((id) => id !== customerId)
+                : [...prevSelected, customerId]
         );
     };
 
@@ -87,19 +89,17 @@ function EventDetails() {
                 )
             );
 
-            // Cập nhật danh sách `assignedUsers` ngay lập tức
             setEvent((prevEvent) => ({
                 ...prevEvent,
                 assignedUsers: [...(prevEvent?.assignedUsers || []), ...assignments],
             }));
 
-            // Hiển thị thông báo thành công
             setSuccessMessage("Assignment successful!");
             setError("");
-            fetchCustomers(eventId); // Cập nhật danh sách khách hàng khả dụng
-            setSelectedCustomers([]); // Reset danh sách khách hàng đã chọn
+            fetchCustomers(eventId);
+            setSelectedCustomers([]);
             setTimeout(() => {
-                setSuccessMessage(""); // Xóa thông báo sau vài giây
+                setSuccessMessage("");
                 setShowModal(false);
             }, 2000);
         } catch (err) {
@@ -113,6 +113,14 @@ function EventDetails() {
         setSelectedCustomers([]);
     };
 
+    const filteredCustomers = customers.filter((customer) =>
+        customer.name.toLowerCase().includes(customerFilter.toLowerCase())
+    );
+
+    const filteredUsers = users.filter((user) =>
+        user.fullName.toLowerCase().includes(userFilter.toLowerCase())
+    );
+
     if (isLoading) return <div className="text-center my-5">Loading...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
 
@@ -124,41 +132,16 @@ function EventDetails() {
             <div className="card shadow mt-4">
                 <div className="card-body">
                     <h4 className="card-title">
-                        Thời Gian Diễn Ra Sự Kiện -{" "}
-                        <span className="text-primary">{event.eventType?.eventTypeName}</span>
+                        Loại Sự Kiện: <span className="text-primary">{event.eventType?.eventTypeName}</span>
                     </h4>
-                    <p className="card-text">
-                        <strong>Vào Ngày:</strong> {new Date(event.eventDate).toLocaleDateString()}
+                    <p className="card-text" style={{ fontWeight: "bold" }}>
+                        Thời Gian Diễn Ra Sự Kiện -{" "}
+                        <span>Vào Ngày:</span> {new Date(event.eventDate).toLocaleDateString()}
                     </p>
                     <p className="card-text">
                         <strong>Mô Tả Về Sự Kiện:</strong> {event.description}
                     </p>
                 </div>
-            </div>
-
-            <div className="mt-4">
-                <h3>Phụ Trách và Khách Hàng</h3>
-                <table className="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Người Phụ Trách</th>
-                            <th>Vai Trò</th>
-                            <th>Khách Hàng</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {event?.assignedUsers?.map((assignedUser, index) => (
-                            <tr key={index}>
-                                <td>{index + 1}</td>
-                                <td>{assignedUser.user?.fullName}</td>
-                                <td>{assignedUser.user?.role}</td>
-                                <td>{assignedUser.customer?.name || "Chưa Gán"}</td>
-
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
             </div>
 
             <div className="text-center mt-4">
@@ -189,9 +172,16 @@ function EventDetails() {
                                 {error && <div className="alert alert-danger">{error}</div>}
 
                                 <h5>Danh Sách Khách Hàng Chưa Tham Gia</h5>
+                                <input
+                                    type="text"
+                                    className="form-control mb-3"
+                                    placeholder="Tìm kiếm khách hàng..."
+                                    value={customerFilter}
+                                    onChange={(e) => setCustomerFilter(e.target.value)}
+                                />
                                 <ul className="list-group mb-3">
-                                    {customers.length > 0 ? (
-                                        customers.map((customer) => (
+                                    {filteredCustomers.length > 0 ? (
+                                        filteredCustomers.map((customer) => (
                                             <li
                                                 key={customer.customerId}
                                                 className="list-group-item d-flex justify-content-between align-items-center"
@@ -209,14 +199,21 @@ function EventDetails() {
                                         ))
                                     ) : (
                                         <li className="list-group-item text-center text-muted">
-                                            Không còn khách hàng nào khả dụng.
+                                            Không có khách hàng phù hợp.
                                         </li>
                                     )}
                                 </ul>
 
                                 <h5>Danh Sách Người Phụ Trách</h5>
+                                <input
+                                    type="text"
+                                    className="form-control mb-3"
+                                    placeholder="Tìm kiếm người phụ trách..."
+                                    value={userFilter}
+                                    onChange={(e) => setUserFilter(e.target.value)}
+                                />
                                 <ul className="list-group">
-                                    {users.map((user) => (
+                                    {filteredUsers.map((user) => (
                                         <li
                                             key={user.userId}
                                             className="list-group-item d-flex justify-content-between align-items-center"
@@ -250,4 +247,5 @@ function EventDetails() {
         </div>
     );
 }
+
 export default EventDetails;

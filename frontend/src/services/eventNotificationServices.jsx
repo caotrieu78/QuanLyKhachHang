@@ -49,12 +49,24 @@ export const deleteNotification = async (notificationId) => {
 
 
 // Gửi thông báo
+// export const sendNotification = async (notificationId, data) => {
+//     return handleRequest(() =>
+//         axios.put(`${API_BASE_URL}/notifications/${notificationId}/send`, data, {
+//             headers: {
+//                 "Content-Type": "application/json",
+//             },
+//         })
+//     );
+// };
 export const sendNotification = async (notificationId, data) => {
-    return handleRequest(() =>
-        axios.put(`${API_BASE_URL}/notifications/${notificationId}/send`, data, {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/notifications/${notificationId}/send`, data, {
             headers: {
                 "Content-Type": "application/json",
             },
-        })
-    );
+        });
+        return response.data;  
+    } catch (error) {
+        throw new Error("Failed to send notification: " + error.message);
+    }
 };

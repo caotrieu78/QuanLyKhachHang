@@ -15,7 +15,12 @@ function Customer() {
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const customersPerPage = 10; // Number of customers per page
+    
 
+    //them moi
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortOrder, setSortOrder] = useState("asc");
+    //====================================================
     // Fetch all customers
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -105,6 +110,24 @@ function Customer() {
         return <div className="alert alert-warning">Không có khách hàng nào được tìm thấy.</div>;
     }
 
+    //them moi
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            // Đổi thứ tự nếu cùng cột
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            // Đổi cột và đặt thứ tự mặc định là tăng dần
+            setSortColumn(column);
+            setSortOrder("asc");
+        }
+    };
+    // Sắp xếp dữ liệu dựa trên cột và thứ tự
+    const sortedCustomers = [...currentCustomers].sort((a, b) => {
+        if (a[sortColumn] < b[sortColumn]) return sortOrder === "asc" ? -1 : 1;
+        if (a[sortColumn] > b[sortColumn]) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+
     return (
         <div className="container">
             {/* Success Message */}
@@ -145,7 +168,7 @@ function Customer() {
             <div className="table-responsive">
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
-                        <tr>
+                        {/* <tr>
                             <th>ID</th>
                             <th>Tên</th>
                             <th>Email</th>
@@ -153,11 +176,22 @@ function Customer() {
                             <th>Địa chỉ</th>
                             <th>Phân loại</th>
                             <th>Actions</th>
+                        </tr> */}
+
+                        <tr>
+                            <th onClick={() => handleSort("customerId")}>ID {sortColumn === "customerId" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("name")}>Tên {sortColumn === "name" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("email")}>Email {sortColumn === "email" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("phone")}>Điện thoại {sortColumn === "phone" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("address")}>Địa chỉ {sortColumn === "address" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("category")}>Phân loại {sortColumn === "category" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {currentCustomers.map((customer) => (
+                        {/* {currentCustomers.map((customer) => ( */}
+                        {sortedCustomers.map((customer) => (
                             <tr key={customer.customerId}>
                                 <td>{customer.customerId}</td>
                                 <td>{customer.name}</td>

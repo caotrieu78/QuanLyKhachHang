@@ -12,6 +12,11 @@ function User() {
     const [successMessage, setSuccessMessage] = useState("");
     const [userToDelete, setUserToDelete] = useState(null);
 
+
+    //them moi
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortOrder, setSortOrder] = useState("asc");
+    //==============================
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 10; // Number of users per page
@@ -98,6 +103,27 @@ function User() {
         return <div className="alert alert-warning">Không có user nào được tìm thấy.</div>;
     }
 
+
+
+    //them moi
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            // Đổi thứ tự nếu cùng cột
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            // Đổi cột và đặt thứ tự mặc định là tăng dần
+            setSortColumn(column);
+            setSortOrder("asc");
+        }
+    };
+    // Sắp xếp dữ liệu dựa trên cột và thứ tự
+    const sortedUsers = [...currentUsers].sort((a, b) => {
+        if (a[sortColumn] < b[sortColumn]) return sortOrder === "asc" ? -1 : 1;
+        if (a[sortColumn] > b[sortColumn]) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+    
+
     return (
         <div className="container">
             {/* Success Message */}
@@ -138,16 +164,25 @@ function User() {
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
-                            <th>ID</th>
+                            {/* <th>ID</th>
                             <th>Username</th>
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Actions</th> */}
+
+                            {/* sua lai code */}
+                            <th onClick={() => handleSort("userId")}>ID {sortColumn === "userId" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("username")}>Username {sortColumn === "username" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("fullName")}>Full Name {sortColumn === "fullName" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("email")}>Email {sortColumn === "email" && (sortOrder === "asc" ? "↑" : "↓")}</th>
+                            <th onClick={() => handleSort("role")}>Role {sortColumn === "role" && (sortOrder === "asc" ? "↑" : "↓")}</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentUsers.map((user) => (
+                        {/* {currentUsers.map((user) => ( */}
+                        {sortedUsers.map((user) => (
                             <tr key={user.userId}>
                                 <td>{user.userId}</td>
                                 <td>{user.username}</td>

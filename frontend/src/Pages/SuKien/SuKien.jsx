@@ -20,6 +20,12 @@ function Event() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingEventId, setEditingEventId] = useState(null);
 
+    //them moi
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortOrder, setSortOrder] = useState("asc");
+    const [errors, setErrors] = useState({});
+    //==============================
+
     // Add/Edit form state
     const [formData, setFormData] = useState({
         eventTypeId: "",
@@ -60,18 +66,20 @@ function Event() {
 
     const handleAddEvent = async (e) => {
         e.preventDefault();
-        if (!formData.eventTypeId || !formData.eventDate || !formData.description) {
-            setError("Vui lòng điền đầy đủ thông tin.");
-            setTimeout(() => setError(""), 2000); // Clear error after 2 seconds
+    
+        // Validate trước khi xử lý
+        if (!validate()) {
+            setError("Vui lòng kiểm tra lại thông tin nhập.");
+            setTimeout(() => setError(""), 2000);
             return;
         }
-
+    
         const eventPayload = {
             eventType: { eventTypeId: parseInt(formData.eventTypeId) },
             description: formData.description,
             eventDate: formData.eventDate,
         };
-
+    
         setLoading(true);
         try {
             if (editingEventId) {
@@ -92,14 +100,16 @@ function Event() {
                 setEvents((prevEvents) => [{ ...newEvent, eventType }, ...prevEvents]);
                 setSuccessMessage("Sự kiện đã được thêm thành công!");
             }
-
+    
+            // Đóng modal và reset form
             setShowAddModal(false);
             setFormData({ eventTypeId: "", description: "", eventDate: "" });
             setEditingEventId(null);
-
-            // Automatically clear success message after 2 seconds
+    
+            // Tự động xóa thông báo thành công sau 2 giây
             setTimeout(() => setSuccessMessage(""), 2000);
         } catch (err) {
+            console.error(err);
             setError("Không thể thêm hoặc cập nhật sự kiện. Vui lòng thử lại.");
             setTimeout(() => setError(""), 2000); // Clear error after 2 seconds
         } finally {
@@ -156,6 +166,43 @@ function Event() {
         if (currentPage > 1) setCurrentPage((prev) => prev - 1);
     };
 
+    //them moi
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortOrder("asc");
+        }
+    };
+    // Sắp xếp dữ liệu dựa trên cột và thứ tự
+    const sortedEvents = [...currentEvents].sort((a, b) => {
+        if (a[sortColumn] < b[sortColumn]) return sortOrder === "asc" ? -1 : 1;
+        if (a[sortColumn] > b[sortColumn]) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+    });
+    
+    const validate = () => {
+        const newErrors = {};
+    
+        if (!formData.eventTypeId) {
+            newErrors.eventTypeId = "Loại sự kiện là bắt buộc.";
+        }
+    
+        if (!formData.description.trim()) {
+            newErrors.description = "Mô tả không được để trống.";
+        }
+    
+        if (!formData.eventDate) {
+            newErrors.eventDate = "Ngày diễn ra là bắt buộc.";
+        } else if (new Date(formData.eventDate) < new Date().setHours(0, 0, 0, 0)) {
+            newErrors.eventDate = "Ngày diễn ra phải từ hôm nay trở đi.";
+        }
+    
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     return (
         <div className="container">
             {loading && <div className="spinner-border text-primary" role="status"></div>}
@@ -191,16 +238,34 @@ function Event() {
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
-                            <th>ID</th>
+                            {/* <th>ID</th>
                             <th>Tên Sự kiện</th>
                             <th>Mô tả</th>
                             <th>Ngày Diễn ra</th>
                             <th>Trạng Thái Sự Kiện</th>
+                            <th>Hành động</th> */}
+                            {/* sua lai code */}
+                            <th onClick={() => handleSort("eventId")}>
+                                ID {sortColumn === "eventId" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("eventType.eventTypeName")}>
+                                Tên Sự kiện {sortColumn === "eventType.eventTypeName" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("description")}>
+                                Mô tả {sortColumn === "description" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("eventDate")}>
+                                Ngày Diễn ra {sortColumn === "eventDate" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
+                            <th onClick={() => handleSort("status")}>
+                                Trạng Thái Sự Kiện {sortColumn === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+                            </th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {currentEvents.map((event) => (
+                        {/* {currentEvents.map((event) => ( */}
+                        {sortedEvents.map((event) => (
                             <tr key={event.eventId}>
                                 <td>{event.eventId}</td>
                                 <td>{event.eventType?.eventTypeName || "N/A"}</td>

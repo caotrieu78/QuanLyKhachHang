@@ -114,7 +114,14 @@ function ProjectType() {
                 <NavLink to={`${PATHS.PROJECT}`} className="btn btn-primary flex-grow-1">
                     Quay Về Trang Quản Lý Dự Án
                 </NavLink>
+                <button style={{marginLeft:"50px", paddingTop:"8px",paddingBottom:"8px"}}
+                    className="btn btn-primary btn-sm me-2"
+                    onClick={() => handleShowAddEditModal()}
+                >
+                    Thêm loại dự án
+                </button>
             </div>
+
 
             {/* Project Types Table */}
             <div className="table-responsive">
@@ -133,12 +140,7 @@ function ProjectType() {
                                     <td>{type.projectTypeId}</td>
                                     <td>{type.typeName}</td>
                                     <td>
-                                        <button
-                                            className="btn btn-primary btn-sm me-2"
-                                            onClick={() => handleShowAddEditModal()}
-                                        >
-                                            Thêm
-                                        </button>
+
                                         <button
                                             className="btn btn-warning btn-sm me-2"
                                             onClick={() => handleShowAddEditModal(type)}
