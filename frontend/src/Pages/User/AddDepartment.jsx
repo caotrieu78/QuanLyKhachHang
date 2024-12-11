@@ -45,11 +45,11 @@ function DepartmentList() {
             if (editingDepartmentId) {
                 // Update existing department
                 await updateDepartment(editingDepartmentId, formData);
-                setSuccessMessage("Department updated successfully!");
+                setSuccessMessage("Cập nhật phòng ban thành công!");
             } else {
                 // Create new department
                 await createDepartment(formData);
-                setSuccessMessage("Department added successfully!");
+                setSuccessMessage("Phòng ban mới đã được thêm vào!");
             }
 
             // Refresh list and reset form
@@ -69,7 +69,7 @@ function DepartmentList() {
     const handleDelete = async (id) => {
         try {
             await deleteDepartment(id); // Gọi API xóa phòng ban
-            setSuccessMessage("Department deleted successfully!");
+            setSuccessMessage("Xóa thành công phòng ban!");
             // Cập nhật lại danh sách phòng ban sau khi xóa
             const updatedDepartments = departments.filter((dept) => dept.departmentId !== id); // Đảm bảo sử dụng departmentId
             setDepartments(updatedDepartments);
