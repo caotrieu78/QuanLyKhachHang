@@ -103,12 +103,17 @@ function User() {
             {/* Success Message */}
             {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
-            {/* Add User Button */}
+            {/* Add User and Create Department Buttons */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1>Danh sách User</h1>
-                <NavLink to={PATHS.ADD_USER} className="btn btn-primary">
-                    Thêm User
-                </NavLink>
+                <div>
+                    <NavLink to={PATHS.ADD_USER} className="btn btn-primary me-2">
+                        Thêm User
+                    </NavLink>
+                    <NavLink to={PATHS.ADD_DEPARTMENT} className="btn btn-success">
+                        Tạo phòng ban
+                    </NavLink>
+                </div>
             </div>
 
             {/* Search and Filter */}

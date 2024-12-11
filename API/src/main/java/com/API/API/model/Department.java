@@ -1,37 +1,26 @@
 package com.API.API.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
-@Table(name = "user")
-public class User {
+@Getter
+@Setter
+@Table(name = "department")
+public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    private Integer departmentId;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String departmentName;
 
     @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    @ManyToOne
-    @JoinColumn(name = "departmentId", nullable = true) // Thiết lập quan hệ với Department
-    private Department department;
+    private Integer userId; // Trường userId có getter và setter
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,9 +36,5 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public enum Role {
-        Admin, Staff, Manager
     }
 }

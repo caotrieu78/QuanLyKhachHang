@@ -26,6 +26,10 @@ import SuKien from "./Pages/SuKien/SuKien";
 import EventDetails from "./Pages/SuKien/EventDetails";
 import NotificationDashboard from "./Pages/Remaind/NotificationDashboard";
 import EventTypes from "./Pages/SuKien/EventTypes";
+import AddDepartment from "./Pages/User/AddDepartment";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 // Helper function to check if the user has the required role
 function ProtectedRoute({ children, requiredRoles }) {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -107,6 +111,16 @@ function App() {
           {/* ----------------THÔNG BÁO-------------------- */}
           {/* <Route path={PATHS.REMAIND} element={<Remaind />} /> */}
           <Route path={PATHS.REMAIND} element={<NotificationDashboard />} />
+
+          {/* ----------------DEPARTMENT------------------------- */}
+          <Route
+            path={PATHS.ADD_DEPARTMENT}
+            element={
+              <ProtectedRoute requiredRoles={["Admin"]}>
+                <AddDepartment />
+              </ProtectedRoute>
+            }
+          />
 
         </Route>
       </Routes>
