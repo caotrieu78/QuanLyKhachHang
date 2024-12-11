@@ -29,9 +29,8 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @ManyToOne
-    @JoinColumn(name = "departmentId", nullable = true) // Thiết lập quan hệ với Department
-    private Department department;
+    @Column(nullable = true) // Lưu trực tiếp tên phòng ban
+    private String departmentName;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

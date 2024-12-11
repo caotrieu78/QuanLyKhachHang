@@ -19,9 +19,6 @@ public class Department {
     @Column(nullable = false, unique = true)
     private String departmentName;
 
-    @Column(nullable = false)
-    private Integer userId;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

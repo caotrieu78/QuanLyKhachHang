@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getUserById, updateUser } from "../../services/authService";
+import { getUserById, updateUser, getAllDepartments } from "../../services/authService";
 
 function EditUser() {
     const { id } = useParams(); // Get user ID from URL
@@ -10,22 +10,27 @@ function EditUser() {
         fullName: "",
         email: "",
         role: "",
+        departmentId: "", // Thêm departmentId vào formData
     });
+    const [departments, setDepartments] = useState([]); // State lưu danh sách phòng ban
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState(""); // State for success message
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchData = async () => {
             try {
                 const user = await getUserById(id); // Fetch user data by ID
                 setFormData(user);
+
+                const deptData = await getAllDepartments(); // Fetch all departments
+                setDepartments(deptData);
             } catch (err) {
-                console.error("Error fetching user:", err);
-                setError("Unable to fetch user details.");
+                console.error("Error fetching data:", err);
+                setError("Unable to fetch user or departments.");
             }
         };
 
-        fetchUser();
+        fetchData();
     }, [id]);
 
     const handleInputChange = (e) => {
@@ -36,14 +41,26 @@ function EditUser() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await updateUser(id, formData); // Update user details
+            // Lấy tên phòng ban dựa trên departmentId
+            const selectedDepartment = departments.find(
+                (dept) => dept.departmentId === formData.departmentId
+            );
+    
+            // Tạo payload mới với departmentName
+            const updatedData = {
+                ...formData,
+                departmentName: selectedDepartment?.departmentName || "",
+            };
+    
+            // Gọi API cập nhật user
+            await updateUser(id, updatedData);
             setSuccessMessage("User updated successfully!");
             setError("");
-
-            // Clear the success message after 3 seconds
+    
+            // Chuyển hướng sau khi cập nhật thành công
             setTimeout(() => {
                 setSuccessMessage("");
-                navigate("/user"); // Redirect back to Manager page
+                navigate("/user");
             }, 2000);
         } catch (err) {
             console.error("Error updating user:", err);
@@ -51,6 +68,8 @@ function EditUser() {
             setSuccessMessage("");
         }
     };
+    
+    
 
     return (
         <div className="container mt-4">
@@ -108,6 +127,23 @@ function EditUser() {
                         <option value="Admin">Admin</option>
                         <option value="Manager">Manager</option>
                         <option value="Staff">Staff</option>
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Phòng Ban</label>
+                    <select
+                        className="form-select"
+                        name="departmentId"
+                        value={formData.departmentId}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Chọn Phòng Ban</option>
+                        {departments.map((dept) => (
+                            <option key={dept.departmentId} value={dept.departmentId}>
+                                {dept.departmentName}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <button type="submit" className="btn btn-success">Cập nhật</button>

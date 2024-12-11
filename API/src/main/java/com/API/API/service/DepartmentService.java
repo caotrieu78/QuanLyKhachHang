@@ -26,17 +26,11 @@ public class DepartmentService {
         return departmentRepository.save(department);
     }
 
-    public Department createDepartment(Department department, Integer userId) {
-        department.setUserId(userId);
-        return departmentRepository.save(department);
-    }
-
     public Department updateDepartment(Integer id, Department updatedDepartment) {
         Optional<Department> existingDepartment = departmentRepository.findById(id);
         if (existingDepartment.isPresent()) {
             Department department = existingDepartment.get();
             department.setDepartmentName(updatedDepartment.getDepartmentName());
-            department.setUserId(updatedDepartment.getUserId());
             return departmentRepository.save(department);
         } else {
             throw new RuntimeException("Department not found");

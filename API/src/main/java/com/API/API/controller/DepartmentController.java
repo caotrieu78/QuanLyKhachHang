@@ -34,14 +34,6 @@ public class DepartmentController {
         return ResponseEntity.ok(createdDepartment);
     }
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<Department> createDepartmentWithUser(
-            @RequestBody Department department,
-            @PathVariable Integer userId) {
-        Department createdDepartment = departmentService.createDepartment(department, userId);
-        return ResponseEntity.ok(createdDepartment);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<Department> updateDepartment(
             @PathVariable Integer id,

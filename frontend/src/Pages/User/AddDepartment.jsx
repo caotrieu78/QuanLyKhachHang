@@ -11,7 +11,6 @@ function DepartmentList() {
     const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         departmentName: "",
-        userId: "",
     });
     const [editingDepartmentId, setEditingDepartmentId] = useState(null);
     const [error, setError] = useState("");
@@ -56,7 +55,7 @@ function DepartmentList() {
             // Refresh list and reset form
             const data = await getAllDepartments();
             setDepartments(data);
-            setFormData({ departmentName: "", userId: "" });
+            setFormData({ departmentName: "" });
             setEditingDepartmentId(null);
             setShowModal(false);
             setError("");
@@ -69,9 +68,11 @@ function DepartmentList() {
     // Delete department
     const handleDelete = async (id) => {
         try {
-            await deleteDepartment(id);
+            await deleteDepartment(id); // Gọi API xóa phòng ban
             setSuccessMessage("Department deleted successfully!");
-            setDepartments(departments.filter((dept) => dept.id !== id));
+            // Cập nhật lại danh sách phòng ban sau khi xóa
+            const updatedDepartments = departments.filter((dept) => dept.departmentId !== id); // Đảm bảo sử dụng departmentId
+            setDepartments(updatedDepartments);
         } catch (err) {
             console.error("Error deleting department:", err);
             setError("Unable to delete department. Please try again.");
@@ -79,25 +80,24 @@ function DepartmentList() {
     };
 
     // Edit department
-    const handleEdit = (department) => {
+    const handleEdit = async (department) => {
         setFormData({
             departmentName: department.departmentName,
-            userId: department.userId,
         });
-        setEditingDepartmentId(department.id);
+        setEditingDepartmentId(department.departmentId); // Sửa thành department.departmentId (theo đúng dữ liệu)
         setShowModal(true);
     };
 
     // Modal controls
     const handleShowModal = () => {
-        setFormData({ departmentName: "", userId: "" });
+        setFormData({ departmentName: "" });
         setEditingDepartmentId(null);
         setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setFormData({ departmentName: "", userId: "" });
+        setFormData({ departmentName: "" });
         setEditingDepartmentId(null);
     };
 
@@ -119,26 +119,24 @@ function DepartmentList() {
                         <tr>
                             <th>ID</th>
                             <th>Tên Phòng Ban</th>
-                            <th>Người Phụ Trách (User ID)</th>
                             <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody>
                         {departments.map((department) => (
-                            <tr key={department.id}>
-                                <td>{department.id}</td>
+                            <tr key={department.departmentId}> {/* Sử dụng departmentId làm key */}
+                                <td>{department.departmentId}</td> {/* Sửa id thành departmentId */}
                                 <td>{department.departmentName}</td>
-                                <td>{department.userId}</td>
                                 <td>
                                     <button
                                         className="btn btn-warning btn-sm me-2"
-                                        onClick={() => handleEdit(department)}
+                                        onClick={() => handleEdit(department)} // Gọi hàm chỉnh sửa
                                     >
                                         Sửa
                                     </button>
                                     <button
                                         className="btn btn-danger btn-sm"
-                                        onClick={() => handleDelete(department.id)}
+                                        onClick={() => handleDelete(department.departmentId)} // Gọi hàm xóa
                                     >
                                         Xóa
                                     </button>
@@ -168,20 +166,6 @@ function DepartmentList() {
                                 id="departmentName"
                                 name="departmentName"
                                 value={formData.departmentName}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div className="mb-3">
-                            <label htmlFor="userId" className="form-label">
-                                Người Phụ Trách (User ID)
-                            </label>
-                            <input
-                                type="number"
-                                className="form-control"
-                                id="userId"
-                                name="userId"
-                                value={formData.userId}
                                 onChange={handleInputChange}
                                 required
                             />
