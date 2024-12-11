@@ -27,7 +27,7 @@ public class DepartmentService {
     }
 
     public Department createDepartment(Department department, Integer userId) {
-        department.setUserId(userId); // Dùng setter ở đây
+        department.setUserId(userId);
         return departmentRepository.save(department);
     }
 
@@ -36,7 +36,7 @@ public class DepartmentService {
         if (existingDepartment.isPresent()) {
             Department department = existingDepartment.get();
             department.setDepartmentName(updatedDepartment.getDepartmentName());
-            department.setUserId(updatedDepartment.getUserId()); // Dùng getter để lấy userId
+            department.setUserId(updatedDepartment.getUserId());
             return departmentRepository.save(department);
         } else {
             throw new RuntimeException("Department not found");

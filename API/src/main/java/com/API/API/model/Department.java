@@ -20,7 +20,7 @@ public class Department {
     private String departmentName;
 
     @Column(nullable = false)
-    private Integer userId; // Trường userId có getter và setter
+    private Integer userId;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

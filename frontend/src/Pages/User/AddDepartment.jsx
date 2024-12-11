@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { getAllDepartments, createDepartment, deleteDepartment, updateDepartment } from "../../services/authService";
+import {
+    getAllDepartments,
+    createDepartment,
+    deleteDepartment,
+    updateDepartment,
+} from "../../services/authService";
 import { Modal, Button } from "react-bootstrap";
 
 function DepartmentList() {
@@ -39,20 +44,22 @@ function DepartmentList() {
         e.preventDefault();
         try {
             if (editingDepartmentId) {
+                // Update existing department
                 await updateDepartment(editingDepartmentId, formData);
                 setSuccessMessage("Department updated successfully!");
             } else {
+                // Create new department
                 await createDepartment(formData);
                 setSuccessMessage("Department added successfully!");
             }
-            setFormData({ departmentName: "", userId: "" });
-            setEditingDepartmentId(null);
-            setError("");
 
-            // Refresh department list
+            // Refresh list and reset form
             const data = await getAllDepartments();
             setDepartments(data);
+            setFormData({ departmentName: "", userId: "" });
+            setEditingDepartmentId(null);
             setShowModal(false);
+            setError("");
         } catch (err) {
             console.error("Error saving department:", err);
             setError("Failed to save department. Please try again.");
@@ -64,12 +71,10 @@ function DepartmentList() {
         try {
             await deleteDepartment(id);
             setSuccessMessage("Department deleted successfully!");
-
-            // Refresh department list
             setDepartments(departments.filter((dept) => dept.id !== id));
         } catch (err) {
             console.error("Error deleting department:", err);
-            setError("Unable to delete department.");
+            setError("Unable to delete department. Please try again.");
         }
     };
 
@@ -83,6 +88,7 @@ function DepartmentList() {
         setShowModal(true);
     };
 
+    // Modal controls
     const handleShowModal = () => {
         setFormData({ departmentName: "", userId: "" });
         setEditingDepartmentId(null);
@@ -146,12 +152,16 @@ function DepartmentList() {
             {/* Modal for adding or editing department */}
             <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{editingDepartmentId ? "Cập Nhật Phòng Ban" : "Thêm Phòng Ban"}</Modal.Title>
+                    <Modal.Title>
+                        {editingDepartmentId ? "Cập Nhật Phòng Ban" : "Thêm Phòng Ban"}
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <form onSubmit={handleSubmit}>
                         <div className="mb-3">
-                            <label htmlFor="departmentName" className="form-label">Tên Phòng Ban</label>
+                            <label htmlFor="departmentName" className="form-label">
+                                Tên Phòng Ban
+                            </label>
                             <input
                                 type="text"
                                 className="form-control"
@@ -163,7 +173,9 @@ function DepartmentList() {
                             />
                         </div>
                         <div className="mb-3">
-                            <label htmlFor="userId" className="form-label">Người Phụ Trách (User ID)</label>
+                            <label htmlFor="userId" className="form-label">
+                                Người Phụ Trách (User ID)
+                            </label>
                             <input
                                 type="number"
                                 className="form-control"

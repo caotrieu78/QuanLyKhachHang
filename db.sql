@@ -120,6 +120,16 @@ CREATE TABLE IF NOT EXISTS event_notifications (
     Message TEXT, -- Nội dung thông báo
     FOREIGN KEY (EventUserID) REFERENCES event_users(EventUserID) ON DELETE CASCADE -- Liên kết đến bảng event_users
 );
+-- Bảng phòng ban (Department)
+CREATE TABLE IF NOT EXISTS department (
+    DepartmentID INT PRIMARY KEY AUTO_INCREMENT, -- ID duy nhất cho phòng ban
+    DepartmentName VARCHAR(255) NOT NULL, -- Tên phòng ban
+    UserID INT NOT NULL, -- ID người dùng liên kết
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo
+    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Thời gian cập nhật
+    FOREIGN KEY (UserID) REFERENCES user(UserID) ON DELETE CASCADE -- Ràng buộc khóa ngoại liên kết tới bảng user
+);
+
 -- Ví dụ chèn dữ liệu vào bảng event_type
 INSERT INTO event_type (EventTypeName) 
 VALUES 
@@ -186,4 +196,12 @@ VALUES
     (3, '2024-12-25', 'Tiệc sinh nhật bất ngờ cho một người bạn', '2024-12-23', 'PLANNED'),
     (4, '2024-12-30', 'Sự kiện doanh nghiệp cuối năm', '2024-12-28', 'PLANNED');
 
+-- Chèn dữ liệu vào bảng department
+INSERT INTO department (DepartmentName, UserID)
+VALUES 
+    ('Human Resources', 1),
+    ('IT Department', 2),
+    ('Marketing', 3),
+    ('Finance', 4),
+    ('Sales', 5);
 
