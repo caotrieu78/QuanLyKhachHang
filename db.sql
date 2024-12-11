@@ -196,14 +196,13 @@ VALUES
     (3, '2024-12-25', 'Tiệc sinh nhật bất ngờ cho một người bạn', '2024-12-23', 'PLANNED'),
     (4, '2024-12-30', 'Sự kiện doanh nghiệp cuối năm', '2024-12-28', 'PLANNED');
 
--- Chèn dữ liệu vào bảng department
-INSERT INTO department (DepartmentName, UserID)
-VALUES 
-    ('Human Resources', 1),
-    ('IT Department', 2),
-    ('Marketing', 3),
-    ('Finance', 4),
-    ('Sales', 5);
+
+CREATE TABLE department (
+    department_id INT AUTO_INCREMENT PRIMARY KEY, -- ID của phòng ban
+    department_name VARCHAR(255) NOT NULL UNIQUE, -- Tên phòng ban (duy nhất)
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Thời gian cập nhật
+);
 
 ALTER TABLE user ADD COLUMN departmentid INT DEFAULT NULL;
 
@@ -216,4 +215,3 @@ SELECT
     department.departmentName
 FROM user
 LEFT JOIN department ON user.departmentid = department.departmentId;
-ALTER TABLE `user` ADD COLUMN `departmentName` VARCHAR(255) NULL;
