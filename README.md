@@ -10,6 +10,8 @@ Customer-Management là một ứng dụng web quản lý khách hàng, bao gồ
 cd frontend
 # Cài đặt thư viện
 npm install
+npm install react-bootstrap bootstrap
+
 # Chạy ứng dụng trên trình duyệt
 npm run dev
 
