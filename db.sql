@@ -205,3 +205,15 @@ VALUES
     ('Finance', 4),
     ('Sales', 5);
 
+ALTER TABLE user ADD COLUMN departmentid INT DEFAULT NULL;
+
+SELECT 
+    user.userId,
+    user.username,
+    user.fullName,
+    user.email,
+    user.role,
+    department.departmentName
+FROM user
+LEFT JOIN department ON user.departmentid = department.departmentId;
+ALTER TABLE `user` ADD COLUMN `departmentName` VARCHAR(255) NULL;
