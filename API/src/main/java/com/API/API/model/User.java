@@ -1,12 +1,14 @@
 package com.API.API.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "user")
 public class User {
 
@@ -29,8 +31,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = true) // Lưu trực tiếp tên phòng ban
-    private String departmentName;
+    @ManyToOne
+    @JoinColumn(name = "departmentId", nullable = true) // Liên kết với bảng Department
+    private Department department;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

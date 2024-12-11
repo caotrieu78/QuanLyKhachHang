@@ -19,10 +19,13 @@ function EditUser() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const user = await getUserById(id); // Fetch user data by ID
-                setFormData(user);
+                const user = await getUserById(id);
+                setFormData({
+                    ...user,
+                    departmentId: user.department?.departmentId || "", // Gán departmentId
+                });
 
-                const deptData = await getAllDepartments(); // Fetch all departments
+                const deptData = await getAllDepartments();
                 setDepartments(deptData);
             } catch (err) {
                 console.error("Error fetching data:", err);
@@ -41,22 +44,23 @@ function EditUser() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Lấy tên phòng ban dựa trên departmentId
+            // Lấy departmentId và tạo payload
             const selectedDepartment = departments.find(
-                (dept) => dept.departmentId === formData.departmentId
+                (dept) => dept.departmentId === parseInt(formData.departmentId, 10)
             );
-    
-            // Tạo payload mới với departmentName
+
             const updatedData = {
                 ...formData,
-                departmentName: selectedDepartment?.departmentName || "",
+                department: {
+                    departmentId: selectedDepartment?.departmentId || null,
+                },
             };
-    
+
             // Gọi API cập nhật user
             await updateUser(id, updatedData);
             setSuccessMessage("User updated successfully!");
             setError("");
-    
+
             // Chuyển hướng sau khi cập nhật thành công
             setTimeout(() => {
                 setSuccessMessage("");
@@ -68,17 +72,12 @@ function EditUser() {
             setSuccessMessage("");
         }
     };
-    
-    
 
     return (
         <div className="container mt-4">
             <h1>Sửa User</h1>
 
-            {/* Display success message */}
             {successMessage && <div className="alert alert-success">{successMessage}</div>}
-
-            {/* Display error message */}
             {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>

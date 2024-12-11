@@ -14,9 +14,9 @@ function User() {
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const usersPerPage = 10; // Number of users per page
+    const usersPerPage = 10; // Số user mỗi trang
 
-    // Fetch all users
+    // Fetch tất cả users
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -25,26 +25,23 @@ function User() {
                 setFilteredUsers(data);
             } catch (err) {
                 console.error("Error fetching users:", err);
-                setError("Unable to fetch users.");
+                setError("Không thể lấy danh sách users.");
             }
         };
 
         fetchUsers();
     }, []);
 
-    // Apply search and role filter
+    // Áp dụng bộ lọc tìm kiếm và vai trò
     useEffect(() => {
         let tempUsers = [...users];
 
-        // Exclude "Admin" role
-        tempUsers = tempUsers.filter((user) => user.role !== "Admin");
-
-        // Filter by role
+        // Lọc theo vai trò
         if (roleFilter) {
             tempUsers = tempUsers.filter((user) => user.role === roleFilter);
         }
 
-        // Filter by search term
+        // Lọc theo từ khóa tìm kiếm
         if (searchTerm) {
             tempUsers = tempUsers.filter(
                 (user) =>
@@ -54,10 +51,10 @@ function User() {
         }
 
         setFilteredUsers(tempUsers);
-        setCurrentPage(1); // Reset to the first page after filtering
+        setCurrentPage(1); // Reset về trang đầu tiên sau khi lọc
     }, [searchTerm, roleFilter, users]);
 
-    // Handle delete user
+    // Xử lý xóa user
     const confirmDelete = (userId) => {
         setUserToDelete(userId);
     };
@@ -66,16 +63,16 @@ function User() {
         try {
             await deleteUser(userToDelete);
             setUsers(users.filter((user) => user.userId !== userToDelete));
-            setSuccessMessage("User deleted successfully!");
+            setSuccessMessage("Xóa user thành công!");
             setUserToDelete(null);
             setTimeout(() => setSuccessMessage(""), 3000);
         } catch (err) {
             console.error("Error deleting user:", err);
-            setError("Unable to delete user.");
+            setError("Không thể xóa user.");
         }
     };
 
-    // Pagination logic
+    // Logic phân trang
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
@@ -92,10 +89,6 @@ function User() {
 
     if (error) {
         return <div className="alert alert-danger">{error}</div>;
-    }
-
-    if (users.length === 0) {
-        return <div className="alert alert-warning">Không có user nào được tìm thấy.</div>;
     }
 
     return (
@@ -118,7 +111,6 @@ function User() {
 
             {/* Search and Filter */}
             <div className="d-flex justify-content-between align-items-center mb-4">
-                {/* Search */}
                 <input
                     type="text"
                     className="form-control w-50 me-3"
@@ -126,7 +118,6 @@ function User() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                {/* Filter */}
                 <select
                     className="form-select w-25"
                     value={roleFilter}
@@ -148,7 +139,7 @@ function User() {
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Phòng Ban</th> {/* Cột phòng ban */}
+                            <th>Phòng Ban</th> {/* Cột hiển thị tên phòng ban */}
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -160,7 +151,7 @@ function User() {
                                 <td>{user.fullName}</td>
                                 <td>{user.email}</td>
                                 <td>{user.role}</td>
-                                <td>{user.departmentName || "Chưa phân bổ"}</td> {/* Hiển thị tên phòng ban */}
+                                <td>{user.department?.departmentName || "Chưa phân bổ"}</td> {/* Hiển thị tên phòng ban */}
                                 <td>
                                     <NavLink
                                         to={`${PATHS.EDIT_USER}/${user.userId}`}
