@@ -8,6 +8,7 @@ const EVENT_TYPES_PATH = "/event-types"
 const REMAIND_PATH = "/remainder";
 const PAYMENT_PATH = "/payment";
 
+
 export const PATHS = {
     // Authentication
     LOGIN: "/login",
@@ -58,5 +59,5 @@ export const PATHS = {
     ADD_PAYMENT: `${PAYMENT_PATH}/addPayment`,
     EDIT_PAYMENT: `${PAYMENT_PATH}/editPayment`,
 
-
+    ADD_DEPARTMENT:`${USER_PATH}/addDepartment`
 };

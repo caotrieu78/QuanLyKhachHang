@@ -120,6 +120,16 @@ CREATE TABLE IF NOT EXISTS event_notifications (
     Message TEXT, -- Nội dung thông báo
     FOREIGN KEY (EventUserID) REFERENCES event_users(EventUserID) ON DELETE CASCADE -- Liên kết đến bảng event_users
 );
+-- Bảng phòng ban (Department)
+CREATE TABLE IF NOT EXISTS department (
+    DepartmentID INT PRIMARY KEY AUTO_INCREMENT, -- ID duy nhất cho phòng ban
+    DepartmentName VARCHAR(255) NOT NULL, -- Tên phòng ban
+    UserID INT NOT NULL, -- ID người dùng liên kết
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo
+    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Thời gian cập nhật
+    FOREIGN KEY (UserID) REFERENCES user(UserID) ON DELETE CASCADE -- Ràng buộc khóa ngoại liên kết tới bảng user
+);
+
 -- Ví dụ chèn dữ liệu vào bảng event_type
 INSERT INTO event_type (EventTypeName) 
 VALUES 
@@ -187,3 +197,21 @@ VALUES
     (4, '2024-12-30', 'Sự kiện doanh nghiệp cuối năm', '2024-12-28', 'PLANNED');
 
 
+CREATE TABLE department (
+    department_id INT AUTO_INCREMENT PRIMARY KEY, -- ID của phòng ban
+    department_name VARCHAR(255) NOT NULL UNIQUE, -- Tên phòng ban (duy nhất)
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Thời gian tạo
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Thời gian cập nhật
+);
+
+ALTER TABLE user ADD COLUMN departmentid INT DEFAULT NULL;
+
+SELECT 
+    user.userId,
+    user.username,
+    user.fullName,
+    user.email,
+    user.role,
+    department.departmentName
+FROM user
+LEFT JOIN department ON user.departmentid = department.departmentId;

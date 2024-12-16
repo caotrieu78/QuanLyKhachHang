@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { createUser } from "../../services/authService";
-import { PATHS } from "../../constant/pathnames"; // Import đường dẫn PATHS
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createUser, getAllDepartments } from "../../services/authService"; // Import API
+import { PATHS } from "../../constant/pathnames"; // Import PATHS
 
 function AddUser() {
     const [formData, setFormData] = useState({
@@ -10,12 +10,28 @@ function AddUser() {
         email: "",
         role: "",
         password: "",
+        departmentName: "", // Change to departmentName
     });
 
+    const [departments, setDepartments] = useState([]); // State for departments
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    const navigate = useNavigate(); // Sử dụng hook useNavigate để điều hướng
+    const navigate = useNavigate();
+
+    // Fetch departments
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const data = await getAllDepartments();
+                setDepartments(data);
+            } catch (err) {
+                console.error("Error fetching departments:", err);
+                setError("Unable to fetch departments.");
+            }
+        };
+        fetchDepartments();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -24,8 +40,9 @@ function AddUser() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("Submitting user:", formData); // Debugging payload
         try {
-            await createUser(formData); // Call the createUser API
+            await createUser(formData); // Call API
             setMessage("User added successfully!");
             setFormData({
                 username: "",
@@ -33,10 +50,11 @@ function AddUser() {
                 email: "",
                 role: "",
                 password: "",
+                departmentName: "",
             });
             setError("");
             setTimeout(() => {
-                navigate(PATHS.USER); // Chuyển hướng đến trang User sau 1 giây
+                navigate(PATHS.USER);
             }, 1000);
         } catch (err) {
             console.error("Error adding user:", err);
@@ -101,6 +119,24 @@ function AddUser() {
                         <option value="Admin">Admin</option>
                         <option value="Manager">Manager</option>
                         <option value="Staff">Staff</option>
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="departmentName" className="form-label">Phòng Ban</label>
+                    <select
+                        className="form-select"
+                        id="departmentName"
+                        name="departmentName"
+                        value={formData.departmentName}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Chọn Phòng Ban</option>
+                        {departments.map((dept) => (
+                            <option key={dept.departmentId} value={dept.departmentName}>
+                                {dept.departmentName}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div className="mb-3">

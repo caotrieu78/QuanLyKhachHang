@@ -9,31 +9,14 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "user")
-public class User {
-
+@Table(name = "department")
+public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    private Integer departmentId;
 
     @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    @ManyToOne
-    @JoinColumn(name = "departmentId", nullable = true) // Liên kết với bảng Department
-    private Department department;
+    private String departmentName;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -49,9 +32,5 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public enum Role {
-        Admin, Staff, Manager
     }
 }
