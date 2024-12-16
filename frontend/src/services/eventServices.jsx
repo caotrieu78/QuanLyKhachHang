@@ -3,102 +3,101 @@ import environments from "../constant/environment";
 
 const API_BASE_URL = environments.apiBaseUrl;
 
-// Event APIs
+// Hàm tiện ích để xử lý yêu cầu API
+const handleRequest = async (request) => {
+    try {
+        const response = await request();
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi yêu cầu API:", error.response || error.message);
+        throw error.response?.data || new Error("Yêu cầu API thất bại");
+    }
+};
+
+// ============================
+// API cho Events (Sự kiện)
+// ============================
+
+// Lấy danh sách tất cả các sự kiện
 export const getAllEvents = async () => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/events`);
-        return response.data; // Return the list of events
-    } catch (error) {
-        console.error("Error fetching events:", error);
-        throw new Error("Không thể tải danh sách sự kiện.");
-    }
+    return handleRequest(() => axios.get(`${API_BASE_URL}/events`));
 };
 
+// Lấy chi tiết một sự kiện theo ID
 export const getEventById = async (id) => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/events/${id}`);
-        return response.data; // Return the data from the response
-    } catch (error) {
-        console.error(`Error fetching event with ID ${id}:`, error);
-        throw new Error("Không thể tải thông tin sự kiện.");
-    }
+    return handleRequest(() => axios.get(`${API_BASE_URL}/events/${id}`));
 };
 
+// Tạo mới một sự kiện
 export const createEvent = async (event) => {
-    try {
-        const response = await axios.post(`${API_BASE_URL}/events`, event);
-        return response.data; // Return the created event data
-    } catch (error) {
-        console.error("Error creating event:", error);
-        throw new Error("Không thể tạo sự kiện.");
-    }
+    return handleRequest(() => axios.post(`${API_BASE_URL}/events`, event));
 };
 
+// Cập nhật thông tin sự kiện
 export const updateEvent = async (id, event) => {
-    try {
-        const response = await axios.put(`${API_BASE_URL}/events/${id}`, event);
-        return response.data; // Return the updated event data
-    } catch (error) {
-        console.error(`Error updating event with ID ${id}:`, error);
-        throw new Error("Không thể cập nhật sự kiện.");
-    }
+    return handleRequest(() => axios.put(`${API_BASE_URL}/events/${id}`, event));
 };
 
+// Xóa một sự kiện
 export const deleteEvent = async (id) => {
-    try {
-        await axios.delete(`${API_BASE_URL}/events/${id}`);
-    } catch (error) {
-        console.error(`Error deleting event with ID ${id}:`, error);
-        throw new Error("Không thể xóa sự kiện.");
-    }
+    return handleRequest(() => axios.delete(`${API_BASE_URL}/events/${id}`));
 };
 
-// Event Type APIs
+// ============================
+// API cho Event Users
+// ============================
+
+// Gán người dùng và khách hàng vào sự kiện
+export const assignUserAndCustomerToEvent = async (eventId, userId, customerId) => {
+    return handleRequest(() =>
+        axios.post(`${API_BASE_URL}/events/${eventId}/users/${userId}/customers/${customerId}`)
+    );
+};
+// Lấy danh sách khách hàng có thể tham gia sự kiện
+export const getAvailableCustomersForEvent = async (eventId) => {
+    return handleRequest(() => axios.get(`${API_BASE_URL}/events/${eventId}/available-customers`));
+};
+
+// Lấy danh sách người dùng phụ trách sự kiện
+export const getEventUsersByEventId = async (eventId) => {
+    return handleRequest(() => axios.get(`${API_BASE_URL}/events/${eventId}/users`));
+};
+// Xóa người dùng và khách hàng khỏi sự kiện
+export const deleteUserAndCustomerFromEvent = async (eventId, userId, customerId) => {
+    return handleRequest(() =>
+        axios.delete(`${API_BASE_URL}/events/${eventId}/users/${userId}/customers/${customerId}`)
+    );
+};
+
+// ============================
+// API cho Event Types
+// ============================
+
+// Lấy tất cả các loại sự kiện
 export const getAllEventTypes = async () => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/event-types`);
-        return response.data; // Return the list of event types
-    } catch (error) {
-        console.error("Error fetching event types:", error);
-        throw new Error("Không thể tải danh sách loại sự kiện.");
-    }
+    const response = await axios.get(`${API_BASE_URL}/event-types`);
+    return response.data;
 };
 
+// Lấy thông tin loại sự kiện theo ID
 export const getEventTypeById = async (id) => {
-    try {
-        const response = await axios.get(`${API_BASE_URL}/event-types/${id}`);
-        return response.data; // Return the event type details
-    } catch (error) {
-        console.error(`Error fetching event type with ID ${id}:`, error);
-        throw new Error("Không thể tải thông tin loại sự kiện.");
-    }
+    const response = await axios.get(`${API_BASE_URL}/event-types/${id}`);
+    return response.data;
 };
 
+// Tạo loại sự kiện mới
 export const createEventType = async (eventType) => {
-    try {
-        const response = await axios.post(`${API_BASE_URL}/event-types`, eventType);
-        return response.data; // Return the created event type data
-    } catch (error) {
-        console.error("Error creating event type:", error);
-        throw new Error("Không thể tạo loại sự kiện.");
-    }
+    const response = await axios.post(`${API_BASE_URL}/event-types`, eventType);
+    return response.data;
 };
 
+// Cập nhật loại sự kiện
 export const updateEventType = async (id, eventType) => {
-    try {
-        const response = await axios.put(`${API_BASE_URL}/event-types/${id}`, eventType);
-        return response.data; // Return the updated event type data
-    } catch (error) {
-        console.error(`Error updating event type with ID ${id}:`, error);
-        throw new Error("Không thể cập nhật loại sự kiện.");
-    }
+    const response = await axios.put(`${API_BASE_URL}/event-types/${id}`, eventType);
+    return response.data;
 };
 
+// Xóa loại sự kiện
 export const deleteEventType = async (id) => {
-    try {
-        await axios.delete(`${API_BASE_URL}/event-types/${id}`);
-    } catch (error) {
-        console.error(`Error deleting event type with ID ${id}:`, error);
-        throw new Error("Không thể xóa loại sự kiện.");
-    }
+    await axios.delete(`${API_BASE_URL}/event-types/${id}`);
 };

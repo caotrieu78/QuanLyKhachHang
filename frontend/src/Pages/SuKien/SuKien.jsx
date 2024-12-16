@@ -1,59 +1,147 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { getAllEvents, deleteEvent } from "../../services/eventServices";
+import {
+    getAllEvents,
+    deleteEvent,
+    createEvent,
+    updateEvent,
+    getAllEventTypes,
+} from "../../services/eventServices";
 import { PATHS } from "../../constant/pathnames";
 
 function Event() {
     const [events, setEvents] = useState([]);
+    const [eventTypes, setEventTypes] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(false); // State for loading
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [eventToDelete, setEventToDelete] = useState(null);
-    const [eventDetails, setEventDetails] = useState(null); // Event details being viewed
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingEventId, setEditingEventId] = useState(null);
+
+    // Add/Edit form state
+    const [formData, setFormData] = useState({
+        eventTypeId: "",
+        description: "",
+        eventDate: "",
+    });
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const eventsPerPage = 5; // Number of events per page
+    const eventsPerPage = 5;
 
-    // Fetch the list of events when the component mounts
     useEffect(() => {
-        const fetchEvents = async () => {
+        const fetchData = async () => {
+            setLoading(true);
             try {
-                const data = await getAllEvents();
-                setEvents(data);
+                const [eventData, eventTypeData] = await Promise.all([
+                    getAllEvents(),
+                    getAllEventTypes(),
+                ]);
+                setEvents(eventData);
+                setEventTypes(eventTypeData);
             } catch (err) {
-                setError("Không thể tải danh sách sự kiện.");
+                setError("Không thể tải dữ liệu sự kiện hoặc loại sự kiện.");
+            } finally {
+                setLoading(false);
             }
         };
-
-        fetchEvents();
+        fetchData();
     }, []);
 
-    // Function to confirm deletion of an event
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleAddEvent = async (e) => {
+        e.preventDefault();
+        if (!formData.eventTypeId || !formData.eventDate || !formData.description) {
+            setError("Vui lòng điền đầy đủ thông tin.");
+            setTimeout(() => setError(""), 2000); // Clear error after 2 seconds
+            return;
+        }
+
+        const eventPayload = {
+            eventType: { eventTypeId: parseInt(formData.eventTypeId) },
+            description: formData.description,
+            eventDate: formData.eventDate,
+        };
+
+        setLoading(true);
+        try {
+            if (editingEventId) {
+                // Update existing event
+                const updatedEvent = await updateEvent(editingEventId, eventPayload);
+                setEvents((prevEvents) =>
+                    prevEvents.map((event) =>
+                        event.eventId === editingEventId ? updatedEvent : event
+                    )
+                );
+                setSuccessMessage("Sự kiện đã được cập nhật thành công!");
+            } else {
+                // Add new event
+                const newEvent = await createEvent(eventPayload);
+                const eventType = eventTypes.find(
+                    (type) => type.eventTypeId === parseInt(formData.eventTypeId)
+                );
+                setEvents((prevEvents) => [{ ...newEvent, eventType }, ...prevEvents]);
+                setSuccessMessage("Sự kiện đã được thêm thành công!");
+            }
+
+            setShowAddModal(false);
+            setFormData({ eventTypeId: "", description: "", eventDate: "" });
+            setEditingEventId(null);
+
+            // Automatically clear success message after 2 seconds
+            setTimeout(() => setSuccessMessage(""), 2000);
+        } catch (err) {
+            setError("Không thể thêm hoặc cập nhật sự kiện. Vui lòng thử lại.");
+            setTimeout(() => setError(""), 2000); // Clear error after 2 seconds
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const handleEdit = (event) => {
+        setEditingEventId(event.eventId);
+        setFormData({
+            eventTypeId: event.eventType?.eventTypeId || "",
+            description: event.description,
+            eventDate: event.eventDate,
+        });
+        setShowAddModal(true);
+    };
     const confirmDelete = (eventId) => {
         setEventToDelete(eventId);
     };
 
-    // Handle deletion of an event
     const handleDelete = async () => {
         try {
             await deleteEvent(eventToDelete);
-            setEvents((prevEvents) =>
-                prevEvents.filter((event) => event.eventId !== eventToDelete)
-            );
+            setEvents((prevEvents) => prevEvents.filter((event) => event.eventId !== eventToDelete));
             setSuccessMessage("Sự kiện đã được xóa thành công!");
             setEventToDelete(null);
-            setTimeout(() => setSuccessMessage(""), 3000);
+            setTimeout(() => setSuccessMessage(""), 2000);
         } catch (err) {
-            setError("Không thể xóa sự kiện.");
+            console.error("Error deleting event:", err);
+            setError("Không thể xóa sự kiện. Vui lòng thử lại.");
         }
     };
 
-    // Function to show event details in a modal
-    const viewEventDetails = (event) => {
-        setEventDetails(event);
-    };
 
-    // Pagination logic
+    // Phân Quyền
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isAuthorized = user?.role === "Admin" || user?.role === "Manager"; // Allow Admin and Manager
+
+
+
+
     const indexOfLastEvent = currentPage * eventsPerPage;
     const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
     const currentEvents = events.slice(indexOfFirstEvent, indexOfLastEvent);
@@ -68,72 +156,82 @@ function Event() {
         if (currentPage > 1) setCurrentPage((prev) => prev - 1);
     };
 
-    if (error) {
-        return <div className="alert alert-danger">{error}</div>;
-    }
-
     return (
         <div className="container">
-            {/* Success Message */}
-            {successMessage && <div className="alert alert-success">{successMessage}</div>}
+            {loading && <div className="spinner-border text-primary" role="status"></div>}
+            {successMessage && (
+                <div className="alert alert-success">{successMessage}</div>
+            )}
+            {error && <div className="alert alert-danger">{error}</div>}
 
-            {/* Add Event and View Event Types Buttons */}
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1>Danh sách sự kiện</h1>
-                <div className="d-flex gap-2">
-                    <NavLink to={PATHS.ADD_EVENT} className="btn btn-primary">
-                        Thêm sự kiện
+                <h1>Danh sách Sự kiện</h1>
+                <div className="d-flex">
+                    <NavLink
+                        to={`${PATHS.EVENT_TYPES}`}
+                        className="btn btn-primary btn-sm me-2"
+                    >
+                        Thêm Loại Sự kiện
                     </NavLink>
-                    <NavLink to={PATHS.EVENT_TYPES} className="btn btn-secondary">
-                        Xem danh sách loại sự kiện
-                    </NavLink>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                            setShowAddModal(true);
+                            setEditingEventId(null);
+                            setFormData({ eventTypeId: "", description: "", eventDate: "" });
+                        }}
+                    >
+                        Thêm Sự kiện
+                    </button>
                 </div>
             </div>
 
-            {/* Event Table */}
+
             <div className="table-responsive">
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
                             <th>ID</th>
-                            <th>Tên sự kiện</th>
-                            <th>Khách hàng</th>
-                            <th>Người phụ trách</th>
-                            <th>Loại sự kiện</th>
-                            <th>Ngày diễn ra</th>
+                            <th>Tên Sự kiện</th>
                             <th>Mô tả</th>
-                            <th>Actions</th>
+                            <th>Ngày Diễn ra</th>
+                            <th>Trạng Thái Sự Kiện</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         {currentEvents.map((event) => (
                             <tr key={event.eventId}>
                                 <td>{event.eventId}</td>
-                                <td>{event.eventName}</td>
-                                <td>{event.customer?.name || "Không có khách hàng"}</td>
-                                <td>{event.user?.fullName || "Không có người phụ trách"}</td>
-                                <td>{event.eventType?.typeName || "Không có loại sự kiện"}</td>
-                                <td>{event.eventDate}</td>
-                                <td>{event.description || "Không có mô tả"}</td>
+                                <td>{event.eventType?.eventTypeName || "N/A"}</td>
+                                <td>{event.description}</td>
+                                <td>{new Date(event.eventDate).toLocaleDateString()}</td>
+                                <td>{event.status}</td>
                                 <td>
                                     <button
-                                        className="btn btn-info btn-sm me-2"
-                                        onClick={() => viewEventDetails(event)}
-                                    >
-                                        Xem
-                                    </button>
-                                    <NavLink
-                                        to={`${PATHS.EDIT_EVENT}/${event.eventId}`}
                                         className="btn btn-warning btn-sm me-2"
+                                        onClick={() => handleEdit(event)}
                                     >
                                         Sửa
-                                    </NavLink>
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => confirmDelete(event.eventId)}
-                                    >
-                                        Xóa
                                     </button>
+                                    {isAuthorized && (
+                                        <>
+                                            <button
+                                                className="btn btn-danger btn-sm me-2"
+                                                onClick={() => confirmDelete(event.eventId)}
+                                            >
+                                                Xóa
+                                            </button>
+
+                                            <NavLink
+                                                to={`${PATHS.EVENT_DETAIL}/${event.eventId}`}
+                                                className="btn btn-primary btn-sm me-2"
+                                            >
+                                                Phân Công Người Phụ Trách
+                                            </NavLink>
+                                        </>
+                                    )}
+
                                 </td>
                             </tr>
                         ))}
@@ -141,18 +239,17 @@ function Event() {
                 </table>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-center align-items-center mt-3 gap-3">
+            <div className="d-flex justify-content-center align-items-center mt-3">
                 <button
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary"
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                 >
                     Previous
                 </button>
-                <span>Page {currentPage} of {totalPages}</span>
+                <span className="mx-2">Page {currentPage} of {totalPages}</span>
                 <button
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary"
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
                 >
@@ -160,12 +257,87 @@ function Event() {
                 </button>
             </div>
 
-            {/* Delete Confirmation Modal */}
+            {/* Modal for Add/Edit Event */}
+            {showAddModal && (
+                <div className="modal fade show" style={{ display: "block" }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <form onSubmit={handleAddEvent}>
+                                <div className="modal-header">
+                                    <h5 className="modal-title">
+                                        {editingEventId ? "Sửa Sự kiện" : "Thêm Sự kiện"}
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        onClick={() => setShowAddModal(false)}
+                                    ></button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label htmlFor="eventTypeId">Loại Sự kiện</label>
+                                        <select
+                                            className="form-select"
+                                            id="eventTypeId"
+                                            name="eventTypeId"
+                                            value={formData.eventTypeId}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="">Chọn loại sự kiện</option>
+                                            {eventTypes.map((type) => (
+                                                <option key={type.eventTypeId} value={type.eventTypeId}>
+                                                    {type.eventTypeName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="description">Mô tả</label>
+                                        <textarea
+                                            className="form-control"
+                                            id="description"
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            rows="3"
+                                            required
+                                        ></textarea>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label htmlFor="eventDate">Ngày Diễn ra</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            id="eventDate"
+                                            name="eventDate"
+                                            value={formData.eventDate}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="modal-footer">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">
+                                        {editingEventId ? "Cập nhật" : "Thêm"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
             {eventToDelete && (
                 <div
                     className="modal fade show"
                     style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-                    tabIndex="-1"
                 >
                     <div className="modal-dialog">
                         <div className="modal-content">
@@ -194,46 +366,6 @@ function Event() {
                                     onClick={handleDelete}
                                 >
                                     Xóa
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Event Details Modal */}
-            {eventDetails && (
-                <div
-                    className="modal fade show"
-                    style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-                    tabIndex="-1"
-                >
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Chi tiết sự kiện</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setEventDetails(null)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <p><strong>ID:</strong> {eventDetails.eventId}</p>
-                                <p><strong>Tên sự kiện:</strong> {eventDetails.eventName}</p>
-                                <p><strong>Ngày diễn ra:</strong> {eventDetails.eventDate}</p>
-                                <p><strong>Mô tả:</strong> {eventDetails.description}</p>
-                                <p><strong>Khách hàng:</strong> {eventDetails.customer.name || "Không có"}</p>
-                                <p><strong>Người phụ trách:</strong> {eventDetails.user.fullName || "Không có"}</p>
-                                <p><strong>Loại sự kiện:</strong> {eventDetails.eventType.typeName || "Không có"}</p>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => setEventDetails(null)}
-                                >
-                                    Đóng
                                 </button>
                             </div>
                         </div>

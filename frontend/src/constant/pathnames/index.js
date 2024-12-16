@@ -2,6 +2,7 @@ const USER_PATH = "/user";
 const CUSTOMER_PATH = "/customer";
 const PROJECT_PATH = "/project";
 const PROJECT_TYPES_PATH = "/project-types";
+const EVENT_TYPES_PATH = "/event-types";
 const EVENT_PATH = "/event";
 const EVENT_TYPES_PATH = "/event-types"
 const REMAIND_PATH = "/remainder";
@@ -38,17 +39,24 @@ export const PATHS = {
 
     // Event Management
     EVENT: EVENT_PATH,
-    ADD_EVENT: `${EVENT_PATH}/addEvent`,
-    EDIT_EVENT: `${EVENT_PATH}/editEvents`,
+    EVENT_DETAIL: `${EVENT_PATH}/detail`,
+    EVENT_DETAIL: "/EventDetails",
 
-    // Event Type
+
+    // Event Types
     EVENT_TYPES: EVENT_TYPES_PATH,
-    ADD_EVENT_TYPE: `${EVENT_PATH}/addTypes`,
-    EDIT_EVENT_TYPE: `${EVENT_PATH}/editTypes`,
 
-    // Reminder Management
+
+    // Reminder Management (Thông Báo )
     REMAIND: REMAIND_PATH,
+    REMAIND_SEND: "/Remaid_Send",
+
 
     // Payment Management
     PAYMENT: PAYMENT_PATH,
+    PAYMENT_LIST: `${PAYMENT_PATH}/PaymentList`,
+    ADD_PAYMENT: `${PAYMENT_PATH}/addPayment`,
+    EDIT_PAYMENT: `${PAYMENT_PATH}/editPayment`,
+
+
 };

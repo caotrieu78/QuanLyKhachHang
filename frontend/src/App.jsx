@@ -11,22 +11,29 @@ import Project from "./Pages/Project/Project";
 import Remaind from "./Pages/Remaind/Remaind";
 import Payment from "./Pages/Payment/Payment";
 import HomeLayout from "./layout/HomeLayout";
-import SuKien from "./Pages/SuKien/SuKien";
 import Login from "./Pages/Login/Login";
 import AddUser from "./Pages/User/AddUser";
 import EditUser from "./Pages/User/EditUser";
 import Home from "./Pages/Home";
 import AddCustomer from "./Pages/Customer/AddCustomer";
 import EditCustomer from "./Pages/Customer/EditCustomer";
-
-
 import ProjectType from "./Pages/Project/ProjectType";
 import EditProject from "./Pages/Project/EditProject";
 import AddProject from "./Pages/Project/AddProject";
-import AddEvent from "./Pages/SuKien/AddEvent";
-import EditEvent from "./Pages/SuKien/EditEvent";
-import EventType from "./Pages/SuKien/EventType";
-
+import AddPayment from "./Pages/Payment/AddPayment";
+import PaymentList from "./Pages/Payment/PaymentList";
+import SuKien from "./Pages/SuKien/SuKien";
+import EventDetails from "./Pages/SuKien/EventDetails";
+import NotificationDashboard from "./Pages/Remaind/NotificationDashboard";
+import EventTypes from "./Pages/SuKien/EventTypes";
+// Helper function to check if the user has the required role
+function ProtectedRoute({ children, requiredRoles }) {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || !requiredRoles.includes(user.role)) {
+    return <Navigate to={PATHS.HOME} replace />; // Redirect if no role or insufficient role
+  }
+  return children;  // Render the children if role matches
+}
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem("isLoggedIn") === "true"
@@ -64,9 +71,9 @@ function App() {
         >
           <Route index element={<Home />} />
           {/* ----------------USER------------------------- */}
-          <Route path={PATHS.USER} element={<User />} />
-          <Route path={PATHS.ADD_USER} element={<AddUser />} />
-          <Route path={`${PATHS.EDIT_USER}/:id`} element={<EditUser />} />
+          <Route path={PATHS.USER} element={<ProtectedRoute requiredRoles={["Admin"]}> <User /></ProtectedRoute>} />
+          <Route path={PATHS.ADD_USER} element={<ProtectedRoute requiredRoles={["Admin"]}><AddUser /></ProtectedRoute>} />
+          <Route path={`${PATHS.EDIT_USER}/:id`} element={<ProtectedRoute requiredRoles={["Admin"]}><EditUser /> </ProtectedRoute>} />
 
           {/* ----------------CUSTOMER------------------------- */}
           <Route path={PATHS.CUSTOMER} element={<Customer />} />
@@ -83,17 +90,24 @@ function App() {
           <Route path={PATHS.PROJECT_TYPES} element={<ProjectType />} />
 
 
-
-
-
-          <Route path={PATHS.EVENT} element={<SuKien />} />
-          <Route path={PATHS.ADD_EVENT} element={<AddEvent />} />
-          <Route path={`${PATHS.EDIT_EVENT}/:id`} element={<EditEvent />} />
-          
-          <Route path={PATHS.EVENT_TYPES} element={<EventType />} />
-          
-          <Route path={PATHS.REMAIND} element={<Remaind />} />
+          {/* ----------------PAYMENT-------------------- */}
           <Route path={PATHS.PAYMENT} element={<Payment />} />
+          <Route path={PATHS.ADD_PAYMENT} element={<AddPayment />} />
+          <Route path={PATHS.PAYMENT_LIST} element={<PaymentList />} />
+          {/* <Route path={`${PATHS.EDIT_PROJECT}/:id`} element={<EditProject />} /> */}
+
+
+          {/* ----------------SUKIEN-------------------- */}
+          <Route path={PATHS.EVENT} element={<SuKien />} />
+          <Route path="/EventDetails/:eventId" element={<EventDetails />} />
+          <Route path={PATHS.EVENT_TYPES} element={<EventTypes />} />
+
+
+
+          {/* ----------------THÔNG BÁO-------------------- */}
+          {/* <Route path={PATHS.REMAIND} element={<Remaind />} /> */}
+          <Route path={PATHS.REMAIND} element={<NotificationDashboard />} />
+
         </Route>
       </Routes>
     </Router>
